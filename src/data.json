@@ -1,0 +1,30 @@
+{
+    "cat": [
+        "cat 1",
+        "hello there",
+        "abcdefg",
+        "abcdefg",
+        "cat 2",
+        "cat 3",
+        "hellooo",
+        "ejfncr"
+    ],
+    "item": {
+        "item 1245": {
+            "cat": "cat 3",
+            "price": 3435.5,
+            "qty": 5432,
+            "unit": "piece"
+        },
+        "item 213": {
+            "cat": "abcdefg",
+            "price": 10,
+            "qty": 543,
+            "unit": "liter"
+        }
+    },
+    "user": {
+        "anJnbnJnbmxy": "bGVqbnJqbGdybmdq",
+        "cXdlcg==": "MTExMTEx"
+    }
+}
