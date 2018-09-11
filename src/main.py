@@ -27,6 +27,7 @@ class Data:
 		this.user = this._data['user']
 		this.cat = this._data['cat']
 		this.item = this._data['item']
+		this.receipt = {}
 		
 	def getItems(this,cat):
 		return {k:v for k,v in this.item.items() if v['cat'] == cat}
@@ -265,7 +266,96 @@ def showMainView():
 def drawMainView():
 	Label(root, textvariable=log).pack(side=TOP,anchor=N)
 	Button(root, text=text['inventoryBtn'], command=showInventoryView).pack(side=TOP,fill=X,anchor=N)
+	
+	def fillAddRecItemsOm(cat=None):
+		if cat == None: cat= addRecCatOmVar.get();
+		addRecItemOm['menu'].delete(0,'end')
+		items = data.getItemsForDD(cat)
+		addRecItemOmVar.set(items[0] if len(items) else '')
+		for i in items:addRecItemOm['menu'].add_command(label=i,command=lambda x=i:addRecItemOmVar.set(x))
+	
+	def catCommand(x):
+			addRecCatOmVar.set(x)
+			fillAddRecItemsOm(x)
+	def fillAddRecCatOm():
+		addRecCatOm['menu'].delete(0,'end')
+		cats = data.cat
+		for c in cats:addRecCatOm['menu'].add_command(label=c,command=lambda x=c:catCommand(x))
+	
+	def addItemRecAction():
+		qty = addRecQtyVar.get()
+		name = addRecItemOmVar.get()
+		name = name[:name.rfind('-')-1]
+		item = data.item[name]
+		if name in data.receipt.keys():
+			data.receipt[name]['qty']+=qty
+		else:
+			item['qty']=qty
+			data.receipt[name]=item
+		total = recTotalLabelVar.get()
+		total += qty * item['price']
+		recTotalLabelVar.set(total)
+		fillReceiptItemsTree()
+		log.set('Item updated')
+		
+	def clearRecAction():
+		data.receipt={}
+		recTotalLabelVar.set(0.0)
+		fillReceiptItemsTree()
+		
+	addRecFrame = Frame(root, height=40)
+	addRecFrame.pack(expand=True, fill=X)
+	addRecFrame.pack_propagate(0)
+	
+	addRecCatOmVar = StringVar()
+	addRecCatOmVar.set(data.cat[0])
+	addRecCatOm = OptionMenu(addRecFrame, addRecCatOmVar, *data.cat,command=fillAddRecItemsOm)
+	addRecCatOm.pack(side=LEFT,fill=Y)
+	addRecCatOm.config(width=10)
+	fillAddRecCatOm()
+	
+	addRecItemOmVar = StringVar()
+	addRecItemOm = OptionMenu(addRecFrame, addRecItemOmVar, '')
+	addRecItemOm.pack(side=LEFT,fill=Y)
+	addRecItemOm.config(width=20)
+	fillAddRecItemsOm(addRecCatOmVar.get())
+	
+	addRecQtyVar = IntVar()
+	addRecQtyVar.set(1)
+	Entry(addRecFrame,textvariable=addRecQtyVar,width=4).pack(side=LEFT,fill=Y)
+	
+	Button(addRecFrame,text=text['addItemRecBtn'],command=addItemRecAction,width=15).pack(side=RIGHT,fill=Y)
+	
+	recOpsFrame = Frame(root, height=40)
+	recOpsFrame.pack(expand=True, fill=X)
+	recOpsFrame.pack_propagate(0)
+	
+	recTotalLabelVar = DoubleVar()
+	recTotalLabelVar.set(0.0)
+	Label(recOpsFrame,textvariable=recTotalLabelVar).pack(side=LEFT,fill=Y)
+	
+	Button(recOpsFrame,text=text['clearRecBtn'],command=clearRecAction,width=15).pack(side=RIGHT,fill=Y)
+	
+	tree = ttk.Treeview(root,selectmode='browse',height=50)
+	tree["columns"]=("name","price","qty","unit")
+	tree.column("#0", width=0)
+	tree.column("name", width=400)
+	tree.column("price", width=80)
+	tree.column("qty", width=80)
+	tree.column("unit", width=80)
 
+	tree.heading("name", text=text['nameHeading'])
+	tree.heading("price", text=text['priceHeading'])
+	tree.heading("qty", text=text['qtyHeading'])
+	tree.heading("unit", text=text['unitHeading'])
+	
+	def fillReceiptItemsTree():
+		tree.delete(*tree.get_children())
+		for k,v in data.receipt.items():
+			tree.insert('', "end", values=(k,v['price'],v['qty'],v['unit']),tags=('receiptItem'))
+	fillReceiptItemsTree()
+	#tree.tag_bind('receiptItem','<1>',changeLog)
+	tree.pack(expand=True,fill='both',side=BOTTOM,anchor=S)
 	
 
 def changeLog(event):
@@ -298,7 +388,9 @@ text={
 'nameHeading':'Name',
 'priceHeading':'Unit price',
 'qtyHeading':'Quantity',
-'unitHeading':'Unit type'
+'unitHeading':'Unit type',
+'addItemRecBtn':'Add to receipt',
+'clearRecBtn':'Clear'
 }
 
 unit=[
