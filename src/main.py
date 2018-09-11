@@ -108,6 +108,8 @@ def drawInventoryView():
 		if len(cat)<5 or cat in data.cat : return
 		data.cat.append(cat)
 		data.save() 
+		fillNewItemCatOm()
+		fillAddToInvCatOm()
 		log.set('Category added')
 		
 	def addItemAction():
@@ -124,13 +126,15 @@ def drawInventoryView():
 			'unit':unit
 		}
 		data.save() 
+		fillItemsTree()
+		fillItemsOm()
 		log.set('Item added')
 		
 	win = Toplevel()
 	win.title(text['inventoryWinTitle'])
 	win.protocol("WM_DELETE_WINDOW", showMainView)
 	Label(win, textvariable=log).pack(anchor=N)
-	f = Frame(win,width=700, height=460)
+	f = Frame(win,width=800, height=500)
 	f.pack(expand=True, fill='both')
 	f.pack_propagate(0)
 	f.pack()
@@ -149,15 +153,23 @@ def drawInventoryView():
 	Button(addCatFrame,text=text['addCatBtn'],command=addCatAction,width=15).pack(side=RIGHT,fill=Y)
 
 	#Add Item
+	def fillNewItemCatOm():
+		newItemCatOm['menu'].delete(0,'end')
+		cats = data.cat
+		for c in cats:newItemCatOm['menu'].add_command(label=c,command=lambda x=c:catDd.set(x))
+	
 	addItemFrame = Frame(topFrame, height=40)
 	addItemFrame.pack(expand=True, fill=X,side=TOP)
 	addItemFrame.pack_propagate(0)
-
+	
 	catDd = StringVar()
 	catDd.set(data.cat[0])
-	catOm = OptionMenu(addItemFrame, catDd, *data.cat)
-	catOm.pack(side=LEFT,fill=Y)
-	catOm.config(width=10)
+	
+	newItemCatOm = OptionMenu(addItemFrame, catDd, *data.cat)
+	newItemCatOm.pack(side=LEFT,fill=Y)
+	newItemCatOm.config(width=10)
+	fillNewItemCatOm()
+	
 	itemName = StringVar()
 	Entry(addItemFrame,textvariable=itemName,width=25).pack(side=LEFT,fill=Y)
 	itemPrice = DoubleVar()
@@ -174,42 +186,52 @@ def drawInventoryView():
 	Button(addItemFrame,text=text['addItemBtn'],command=addItemAction,width=15).pack(side=RIGHT,fill=Y)
 	
 	#Add to inventory
-	def updateItems(cat):
+	def fillItemsOm(cat=None):
+		if cat == None: cat= addToInvCatOmVar.get();
 		itemsOm['menu'].delete(0,'end')
 		items = data.getItemsForDD(cat)
 		itemDd.set(items[0] if len(items) else '')
 		for i in items:itemsOm['menu'].add_command(label=i,command=lambda x=i:itemDd.set(x))
-	addToInveFrame = Frame(topFrame, height=40)
-	addToInveFrame.pack(expand=True, fill=X,side=TOP)
-	addToInveFrame.pack_propagate(0)
-	catDdForItem = StringVar()
-	catDdForItem.set(data.cat[0])
-	catOm = OptionMenu(addToInveFrame, catDdForItem, *data.cat,command=updateItems)
-	catOm.pack(side=LEFT,fill=Y)
-	catOm.config(width=10)
-	itemDd = StringVar()
-	itemsOm = OptionMenu(addToInveFrame, itemDd, '')
-	itemsOm.pack(side=LEFT,fill=Y)
-	itemsOm.config(width=20)
-	updateItems(catDdForItem.get())
-	itemQtyForItem = IntVar()
-	itemQtyForItem.set(1)
-	Entry(addToInveFrame,textvariable=itemQtyForItem,width=4).pack(side=LEFT,fill=Y)
 	def addItemToInvAction():
-		cat = catDdForItem.get()
+		cat = addToInvCatOmVar.get()
 		name = itemDd.get()
 		name = name[:name.rfind('-')-1]
 		qty = itemQtyForItem.get()
 		data.item[name]['qty'] += qty
 		data.save() 
+		fillItemsTree()
 		log.set('Item updated')
+	def catCommand(x):
+			addToInvCatOmVar.set(x)
+			fillItemsOm(x)
+	def fillAddToInvCatOm():
+		addToInvCatOm['menu'].delete(0,'end')
+		cats = data.cat
+		for c in cats:addToInvCatOm['menu'].add_command(label=c,command=lambda x=c:catCommand(x))
+	addToInveFrame = Frame(topFrame, height=40)
+	addToInveFrame.pack(expand=True, fill=X,side=TOP)
+	addToInveFrame.pack_propagate(0)
+	addToInvCatOmVar = StringVar()
+	addToInvCatOmVar.set(data.cat[0])
+	addToInvCatOm = OptionMenu(addToInveFrame, addToInvCatOmVar, *data.cat,command=fillItemsOm)
+	addToInvCatOm.pack(side=LEFT,fill=Y)
+	addToInvCatOm.config(width=10)
+	fillAddToInvCatOm()
+	itemDd = StringVar()
+	itemsOm = OptionMenu(addToInveFrame, itemDd, '')
+	itemsOm.pack(side=LEFT,fill=Y)
+	itemsOm.config(width=20)
+	fillItemsOm(addToInvCatOmVar.get())
+	itemQtyForItem = IntVar()
+	itemQtyForItem.set(1)
+	Entry(addToInveFrame,textvariable=itemQtyForItem,width=4).pack(side=LEFT,fill=Y)
 	Button(addToInveFrame,text=text['addItemToInvBtn'],command=addItemToInvAction,width=15).pack(side=RIGHT,fill=Y)
 	
 	#View inventory
-	tree = ttk.Treeview(f,selectmode='browse')
+	tree = ttk.Treeview(f,selectmode='browse',height=50)
 	tree["columns"]=("name","price","qty","unit")
 	tree.column("#0", width=100)
-	tree.column("name", width=350)
+	tree.column("name", width=400)
 	tree.column("price", width=80)
 	tree.column("qty", width=80)
 	tree.column("unit", width=80)
@@ -219,15 +241,17 @@ def drawInventoryView():
 	tree.heading("qty", text=text['qtyHeading'])
 	tree.heading("unit", text=text['unitHeading'])
 	
-	for i in data.cat:
-		items = data.getItems(i)
-		if not items: continue
-		catId = tree.insert("" , 'end', text=i, values=('','',str(len(items)) ,''))
-		for k,v in items.items():
-			tree.insert(catId, "end", values=(k,v['price'],v['qty'],v['unit']),tags=('item'))
-		
+	def fillItemsTree():
+		tree.delete(*tree.get_children())
+		for i in data.cat:
+			items = data.getItems(i)
+			if not items: continue
+			catId = tree.insert("" , 'end', text=i, values=('','',str(len(items)) ,''))
+			for k,v in items.items():
+				tree.insert(catId, "end", values=(k,v['price'],v['qty'],v['unit']),tags=('item'))
+	fillItemsTree()
 	#tree.tag_bind('item','<1>',changeLog)
-	tree.pack()
+	tree.pack(expand=True,fill='both')
 	return win
 
 def showInventoryView():
@@ -239,9 +263,10 @@ def showMainView():
 	inventoryWindow.withdraw()
 	
 def drawMainView():
-	l = Label(f, text="Welcome to the main view").pack()
+	Label(root, textvariable=log).pack(side=TOP,anchor=N)
+	Button(root, text=text['inventoryBtn'], command=showInventoryView).pack(side=TOP,fill=X,anchor=N)
+
 	
-	Button(f, text=text['inventoryBtn'], command=showInventoryView).pack()
 
 def changeLog(event):
 	item = tree.identify('item',event.x,event.y)
@@ -287,10 +312,17 @@ IN_DEVELOPMENT = True
 	
 data = Data()
 root = Tk()
+w = 800
+h = 650
+ws = root.winfo_screenwidth() # width of the screen
+hs = root.winfo_screenheight() # height of the screen
+x = (ws/2) - (w/2)
+y = (hs/2) - (h/2)
+root.geometry('%dx%d+%d+%d' % (w, h, x, y))
+
 log = StringVar()
 log.set('LOG')
-Label(root, textvariable=log).pack()
-Button(root,text="The best button ever").pack()
+
 loginName = StringVar()
 loginPass = StringVar()
 
@@ -304,16 +336,12 @@ if IN_DEVELOPMENT:
 	User('ahmed','123456')
 	User.cur.login()
 	root.deiconify()
-	f = Frame(root, width=500, height=500).pack()
 	drawMainView()
-	showInventoryView()
 	root.mainloop()
 else:
 	root.wait_window(loginWindow)
 	if User.auth:
 		root.deiconify()
-		f = Frame(root, width=500, height=500).pack()
-		tree = ttk.Treeview(f,selectmode='browse')
 		drawMainView()
 		root.mainloop()
 
