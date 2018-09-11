@@ -47,7 +47,7 @@
         "akhenvr": {
             "cat": "cat 1",
             "price": 1.0,
-            "qty": 323,
+            "qty": 128,
             "unit": "piece"
         },
         "asefefef": {
@@ -71,7 +71,7 @@
         "ejalnf": {
             "cat": "cat 1",
             "price": 1.0,
-            "qty": 124,
+            "qty": 0,
             "unit": "piece"
         },
         "erbfvdc": {
@@ -95,13 +95,13 @@
         "item 1245": {
             "cat": "cat 3",
             "price": 3435.5,
-            "qty": 5432,
+            "qty": 0,
             "unit": "piece"
         },
         "item 134": {
             "cat": "cat 1",
             "price": 1.0,
-            "qty": 22,
+            "qty": 0,
             "unit": "piece"
         },
         "item 213": {
@@ -135,6 +135,14 @@
             "unit": "piece"
         }
     },
+    "money": [
+        3438.5,
+        1.0,
+        8.0,
+        12.0,
+        1.0
+    ],
+    "totalMoney": 3460.5,
     "user": {
         "YWxp": "MTExMTEx",
         "anJnbnJnbmxy": "bGVqbnJqbGdybmdq",

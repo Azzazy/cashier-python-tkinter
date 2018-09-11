@@ -28,6 +28,8 @@ class Data:
 		this.cat = this._data['cat']
 		this.item = this._data['item']
 		this.receipt = {}
+		this.money = this._data['money']
+		this.totalMoney = this._data['totalMoney']
 		
 	def getItems(this,cat):
 		return {k:v for k,v in this.item.items() if v['cat'] == cat}
@@ -36,7 +38,7 @@ class Data:
 		return ['' + k + ' - ' + str(v['unit'])  for k,v in this.getItems(cat).items()]
 		
 	def prepareData(this):
-		this._data = {'user':this.user, 'cat':this.cat, 'item':this.item}
+		this._data = {'user':this.user, 'cat':this.cat, 'item':this.item,'totalMoney':this.totalMoney, 'money':this.money}
 		
 	def create(this):
 		this.prepareData()
@@ -143,8 +145,12 @@ def drawInventoryView():
 	topFrame.pack(expand=True, fill=X)
 
 	topFrame.pack(anchor=NW)
-	Button(topFrame,text=text['goBackBtn'],command=showMainView).pack(side=TOP,fill=X)
+	hud = Frame(topFrame, height=40)
+	hud.pack(expand=True, fill=X,side=TOP)
+	hud.pack_propagate(0)
+	Button(hud,text=text['goBackBtn'],command=showMainView).pack(side=RIGHT, expand=True,fill=X)
 	
+	Label(hud,textvariable=totalMoneyLabelVar).pack(side=LEFT, expand=True,fill=X)
 	#Add Category
 	addCatFrame = Frame(topFrame, height=40)
 	addCatFrame.pack(expand=True, fill=X,side=TOP)
@@ -249,8 +255,13 @@ def drawInventoryView():
 			if not items: continue
 			catId = tree.insert("" , 'end', text=i, values=('','',str(len(items)) ,''))
 			for k,v in items.items():
-				tree.insert(catId, "end", values=(k,v['price'],v['qty'],v['unit']),tags=('item'))
+				if v['qty'] < 10:
+					tree.insert(catId, "end", values=(k,v['price'],v['qty'],v['unit']),tags=('item','low'))
+					tree.item(catId, tags="low	")
+				else:
+					tree.insert(catId, "end", values=(k,v['price'],v['qty'],v['unit']),tags=('item'))
 	fillItemsTree()
+	tree.tag_configure('low', background='red')
 	#tree.tag_bind('item','<1>',changeLog)
 	tree.pack(expand=True,fill='both')
 	return win
@@ -287,11 +298,15 @@ def drawMainView():
 		name = addRecItemOmVar.get()
 		name = name[:name.rfind('-')-1]
 		item = data.item[name]
+		availableQty = item['qty']
 		if name in data.receipt.keys():
+			if data.receipt[name]['qty']+qty>availableQty:return
 			data.receipt[name]['qty']+=qty
 		else:
-			item['qty']=qty
-			data.receipt[name]=item
+			if qty > availableQty:return
+			newItem = dict(item)
+			newItem['qty']=qty
+			data.receipt[name]=newItem
 		total = recTotalLabelVar.get()
 		total += qty * item['price']
 		recTotalLabelVar.set(total)
@@ -302,6 +317,15 @@ def drawMainView():
 		data.receipt={}
 		recTotalLabelVar.set(0.0)
 		fillReceiptItemsTree()
+		
+	def confirmRecAction():
+		for k,v in data.receipt.items():
+			data.item[k]['qty']-=v['qty']
+		data.money.append(recTotalLabelVar.get())
+		data.totalMoney+=recTotalLabelVar.get()
+		data.save()
+		updateTotalMoneyLabel()
+		clearRecAction()
 		
 	addRecFrame = Frame(root, height=40)
 	addRecFrame.pack(expand=True, fill=X)
@@ -332,7 +356,9 @@ def drawMainView():
 	
 	recTotalLabelVar = DoubleVar()
 	recTotalLabelVar.set(0.0)
-	Label(recOpsFrame,textvariable=recTotalLabelVar).pack(side=LEFT,fill=Y)
+	Label(recOpsFrame,textvariable=recTotalLabelVar,width=15).pack(side=LEFT,fill=Y)
+	
+	Button(recOpsFrame,text=text['confirmRecBtn'],command=confirmRecAction,width=25).pack(side=LEFT,fill=Y)
 	
 	Button(recOpsFrame,text=text['clearRecBtn'],command=clearRecAction,width=15).pack(side=RIGHT,fill=Y)
 	
@@ -365,7 +391,7 @@ def changeLog(event):
 	
 try:to_unicode = unicode
 except NameError:to_unicode = str
-	
+'''
 text={
 "name":"Name",
 'password':'Password',
@@ -390,24 +416,54 @@ text={
 'qtyHeading':'Quantity',
 'unitHeading':'Unit type',
 'addItemRecBtn':'Add to receipt',
-'clearRecBtn':'Clear'
+'clearRecBtn':'Clear',
+'confirmRecBtn':'Confirm',
+'rootTitle':'CashierApp'
+}
+'''
+text={
+"name":"اسم المستخدم",
+'password':'كلمة المرور',
+'loginBtn':'تسجيل الدخول',
+'registerBtn':'إنشاء حساب جديد',
+'loginTitle':'تسجيل الدخول',
+'masterPassTitle': 'كلمة المرور الرئيسيه',
+'masterPassPrompt':'ادخل كلمة المرور الرئيسيه',
+'inventoryBtn':'اعرض المخزن',
+'inventoryWinTitle':'المخزن',
+'goBackBtn':'اغلق المخزن',
+'addCatBtn':'مجموعه جديده',
+'addItemBtn':'صنف جديد+',
+'piece':'قطعه',
+'liter':'لتر',
+'addItemToInvBtn':'اضف للمخزن',
+'catHeading':'مجموع',
+'nameHeading':'صنف',
+'priceHeading':'سعر الوحده',
+'qtyHeading':'الكميه',
+'unitHeading':'الوحده',
+'addItemRecBtn':'اضف للفاتوره',
+'clearRecBtn':'امسح الفاتوره',
+'confirmRecBtn':'تاكيد الفاتوره',
+'rootTitle':'برنامج الكاشير'
 }
 
 unit=[
 text['piece'],
 text['liter']
 ]
-masterPassword = '12345678'
+masterPassword = '12349876'
 dataFileName = 'data.json'
 
-IN_DEVELOPMENT = True
+IN_DEVELOPMENT = False
 	
 data = Data()
 root = Tk()
+root.title(text['rootTitle'])
 w = 800
 h = 650
-ws = root.winfo_screenwidth() # width of the screen
-hs = root.winfo_screenheight() # height of the screen
+ws = root.winfo_screenwidth() 
+hs = root.winfo_screenheight()
 x = (ws/2) - (w/2)
 y = (hs/2) - (h/2)
 root.geometry('%dx%d+%d+%d' % (w, h, x, y))
@@ -417,6 +473,11 @@ log.set('LOG')
 
 loginName = StringVar()
 loginPass = StringVar()
+
+def updateTotalMoneyLabel():
+	totalMoneyLabelVar.set(data.totalMoney)
+totalMoneyLabelVar = DoubleVar()
+updateTotalMoneyLabel()
 
 loginWindow = drawLoginView()
 inventoryWindow = drawInventoryView()
