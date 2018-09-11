@@ -16,8 +16,11 @@ class Data:
 	def __init__(this):
 		this._data=None
 		this.user={}
-		this.cat=[]
+		this.cat=['default']
 		this.item={}
+		this.totalMoney=0.0
+		this.money = []
+		this.receipt = {}
 		try:this.load()
 		except:this.create()
 	
@@ -27,7 +30,6 @@ class Data:
 		this.user = this._data['user']
 		this.cat = this._data['cat']
 		this.item = this._data['item']
-		this.receipt = {}
 		this.money = this._data['money']
 		this.totalMoney = this._data['totalMoney']
 		
@@ -170,8 +172,8 @@ def drawInventoryView():
 	addItemFrame.pack_propagate(0)
 	
 	catDd = StringVar()
-	catDd.set(data.cat[0])
-	
+	try:catDd.set(data.cat[0])
+	except:catDd.set('N/A')
 	newItemCatOm = OptionMenu(addItemFrame, catDd, *data.cat)
 	newItemCatOm.pack(side=LEFT,fill=Y)
 	newItemCatOm.config(width=10)
