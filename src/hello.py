@@ -27,7 +27,13 @@ class Data:
 		this.user = this._data['user']
 		this.cat = this._data['cat']
 		this.item = this._data['item']
-	
+		
+	def getItems(this,cat):
+		return {k:v for k,v in this.item.items() if v['cat'] == cat}
+		
+	def getItemsForDD(this,cat):
+		return ['' + k + ' - ' + str(v['unit'])  for k,v in this.getItems(cat).items()]
+		
 	def prepareData(this):
 		this._data = {'user':this.user, 'cat':this.cat, 'item':this.item}
 		
@@ -42,7 +48,7 @@ class Data:
 							indent=4, sort_keys=True,
 							separators=(',', ': '), ensure_ascii=False)
 			outfile.write(to_unicode(str_))
-			
+	
 class User:
 	cur = None
 	auth = False
@@ -123,39 +129,73 @@ def drawInventoryView():
 	win = Toplevel()
 	win.title(text['inventoryWinTitle'])
 	win.protocol("WM_DELETE_WINDOW", showMainView)
-	Label(win, textvariable=log).pack(fill=X,anchor=N)
+	Label(win, textvariable=log).pack(anchor=N)
 	f = Frame(win,width=1500, height=460)
 	f.pack(expand=True, fill='both')
 	f.pack_propagate(0)
 	f.pack()
-	topFrame = Frame(f, height=50)
+	topFrame = Frame(f, height=40)
 	topFrame.pack(expand=True, fill=X)
 	topFrame.pack_propagate(0)
 	topFrame.pack(anchor=NW)
 	Button(topFrame,text=text['goBackBtn'],command=showMainView).pack(side=LEFT,fill=Y)
 	
 	#Add Category
+	addCatFrame = Frame(topFrame)
+	addCatFrame.pack(expand=True, fill=Y,side=LEFT)
 	catName = StringVar()
-	Entry(topFrame,textvariable=catName).pack(side=LEFT,fill=Y)
-	Button(topFrame,text=text['addCatBtn'],command=addCatAction).pack(side=LEFT,fill=Y)
+	Entry(addCatFrame,textvariable=catName).pack(side=LEFT,fill=Y)
+	Button(addCatFrame,text=text['addCatBtn'],command=addCatAction).pack(side=LEFT,fill=Y)
 
 	#Add Item
+	addItemFrame = Frame(topFrame)
+	addItemFrame.pack(expand=True, fill=Y,side=LEFT)
 	catDd = StringVar()
 	catDd.set(data.cat[0])
-	OptionMenu(topFrame, catDd, *data.cat).pack(side=LEFT,fill=Y)
+	OptionMenu(addItemFrame, catDd, *data.cat).pack(side=LEFT,fill=Y)
 	itemName = StringVar()
-	Entry(topFrame,textvariable=itemName).pack(side=LEFT,fill=Y)
+	Entry(addItemFrame,textvariable=itemName).pack(side=LEFT,fill=Y)
 	itemPrice = DoubleVar()
 	itemPrice.set(1)
-	Entry(topFrame,textvariable=itemPrice).pack(side=LEFT,fill=Y)
+	Entry(addItemFrame,textvariable=itemPrice,width=5).pack(side=LEFT,fill=Y)
 	itemQty = IntVar()
 	itemQty.set(1)
-	Entry(topFrame,textvariable=itemQty).pack(side=LEFT,fill=Y)
+	Entry(addItemFrame,textvariable=itemQty,width=5).pack(side=LEFT,fill=Y)
 	unitDd = StringVar()
 	unitDd.set(unit[0])
-	OptionMenu(topFrame, unitDd, *unit).pack(side=LEFT,fill=Y)
-	Button(topFrame,text=text['addItemBtn'],command=addItemAction).pack(side=LEFT,fill=Y)
+	OptionMenu(addItemFrame, unitDd, *unit).pack(side=LEFT,fill=Y)
+	Button(addItemFrame,text=text['addItemBtn'],command=addItemAction).pack(side=LEFT,fill=Y)
 	
+	#Add to inventory
+	def updateItems(cat):
+		itemsOm['menu'].delete(0,'end')
+		items = data.getItemsForDD(cat)
+		itemDd.set(items[0] if len(items) else '')
+		for i in items:itemsOm['menu'].add_command(label=i,command=lambda x=i:itemDd.set(x))
+	addToInveFrame = Frame(topFrame)
+	addToInveFrame.pack(expand=True, fill=Y,side=LEFT)
+	catDdForItem = StringVar()
+	catDdForItem.set(data.cat[0])
+	catOm = OptionMenu(addToInveFrame, catDdForItem, *data.cat,command=updateItems)
+	catOm.grid(row=0,column=0,sticky=NSEW)
+	catOm.config(width=10)
+	itemDd = StringVar()
+	itemsOm = OptionMenu(addToInveFrame, itemDd, '')
+	itemsOm.config(width=20)
+	itemsOm.grid(row=0,column=1,sticky=NSEW)
+	updateItems(catDdForItem.get())
+	itemQtyForItem = IntVar()
+	itemQtyForItem.set(1)
+	Entry(addToInveFrame,textvariable=itemQtyForItem,width=5).grid(row=0,column=2,sticky=NSEW)
+	def addItemToInvAction():
+		cat = catDdForItem.get()
+		name = itemDd.get()
+		name = name[:name.rfind('-')-1]
+		qty = itemQtyForItem.get()
+		data.item[name]['qty'] += qty
+		data.save() 
+		log.set('Item updated')
+	Button(addToInveFrame,text=text['addItemToInvBtn'],command=addItemToInvAction).grid(row=0,column=3,sticky=NSEW)
 	return win
 
 def showInventoryView():
@@ -210,7 +250,8 @@ text={
 'addCatPrompt':'What is the Category name?',
 'addItemBtn':'Add new Item',
 'piece':'piece',
-'liter':'liter'
+'liter':'liter',
+'addItemToInvBtn':'Add to inventory'
 }
 
 unit=[

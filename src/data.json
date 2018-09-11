@@ -10,10 +10,34 @@
         "ejfncr"
     ],
     "item": {
+        "akhenvr": {
+            "cat": "cat 1",
+            "price": 1.0,
+            "qty": 197,
+            "unit": "piece"
+        },
+        "ejalnf": {
+            "cat": "cat 1",
+            "price": 1.0,
+            "qty": 124,
+            "unit": "piece"
+        },
+        "hi-789": {
+            "cat": "abcdefg",
+            "price": 1.0,
+            "qty": 4,
+            "unit": "liter"
+        },
         "item 1245": {
             "cat": "cat 3",
             "price": 3435.5,
             "qty": 5432,
+            "unit": "piece"
+        },
+        "item 134": {
+            "cat": "cat 1",
+            "price": 1.0,
+            "qty": 22,
             "unit": "piece"
         },
         "item 213": {
