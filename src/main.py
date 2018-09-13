@@ -5,6 +5,8 @@ import json
 import io
 import base64
 
+
+
 def checkMasterPassword():
 	answer = tkinter.simpledialog.askstring(title=text['masterPassTitle'], prompt=text['masterPassPrompt'],show='*')
 	if answer != masterPassword: 
@@ -21,6 +23,7 @@ class Data:
 		this.totalMoney=0.0
 		this.money = []
 		this.receipt = {}
+		this.receipts = []
 		try:this.load()
 		except:this.create()
 	
@@ -32,6 +35,7 @@ class Data:
 		this.item = this._data['item']
 		this.money = this._data['money']
 		this.totalMoney = this._data['totalMoney']
+		this.receipts = this._data['receipts']
 		
 	def getItems(this,cat):
 		return {k:v for k,v in this.item.items() if v['cat'] == cat}
@@ -40,7 +44,10 @@ class Data:
 		return ['' + k + ' - ' + str(v['unit'])  for k,v in this.getItems(cat).items()]
 		
 	def prepareData(this):
-		this._data = {'user':this.user, 'cat':this.cat, 'item':this.item,'totalMoney':this.totalMoney, 'money':this.money}
+		if this.receipt: 
+			this.receipts.append(this.receipt)
+			this.receipt = {}
+		this._data = {'user':this.user, 'cat':this.cat, 'item':this.item,'totalMoney':this.totalMoney, 'money':this.money, 'receipts':this.receipts}
 		
 	def create(this):
 		this.prepareData()
@@ -153,6 +160,7 @@ def drawInventoryView():
 	Button(hud,text=text['goBackBtn'],command=showMainView).pack(side=RIGHT, expand=True,fill=X)
 	
 	Label(hud,textvariable=totalMoneyLabelVar).pack(side=LEFT, expand=True,fill=X)
+	
 	#Add Category
 	addCatFrame = Frame(topFrame, height=40)
 	addCatFrame.pack(expand=True, fill=X,side=TOP)
@@ -309,19 +317,19 @@ def drawMainView():
 			newItem = dict(item)
 			newItem['qty']=qty
 			data.receipt[name]=newItem
-		total = recTotalLabelVar.get()
-		total += qty * item['price']
-		recTotalLabelVar.set(total)
+		try:data.receipt['totalMoney']+= qty * item['price']
+		except:data.receipt['totalMoney']= qty * item['price']
+		recTotalLabelVar.set(data.receipt['totalMoney'])
 		fillReceiptItemsTree()
 		log.set('Item updated')
 		
 	def clearRecAction():
-		data.receipt={}
 		recTotalLabelVar.set(0.0)
 		fillReceiptItemsTree()
 		
 	def confirmRecAction():
 		for k,v in data.receipt.items():
+			if k == 'totalMoney':continue
 			data.item[k]['qty']-=v['qty']
 		data.money.append(recTotalLabelVar.get())
 		data.totalMoney+=recTotalLabelVar.get()
@@ -380,6 +388,7 @@ def drawMainView():
 	def fillReceiptItemsTree():
 		tree.delete(*tree.get_children())
 		for k,v in data.receipt.items():
+			if k=='totalMoney':continue
 			tree.insert('', "end", values=(k,v['price'],v['qty'],v['unit']),tags=('receiptItem'))
 	fillReceiptItemsTree()
 	#tree.tag_bind('receiptItem','<1>',changeLog)
@@ -457,7 +466,7 @@ text['liter']
 masterPassword = '12349876'
 dataFileName = 'data.json'
 
-IN_DEVELOPMENT = False
+IN_DEVELOPMENT = True
 	
 data = Data()
 root = Tk()

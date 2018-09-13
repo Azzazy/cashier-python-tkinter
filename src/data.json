@@ -17,13 +17,14 @@
         "124567ytgfc",
         "wrfvdc",
         "gfdstre",
-        "jhmngbfvdc"
+        "jhmngbfvdc",
+        "اغذيه"
     ],
     "item": {
         ".k,jmhngbfv": {
             "cat": "jhmngbfvdc",
             "price": 1.0,
-            "qty": 1,
+            "qty": 0,
             "unit": "piece"
         },
         "1234qwerasd": {
@@ -47,7 +48,7 @@
         "akhenvr": {
             "cat": "cat 1",
             "price": 1.0,
-            "qty": 128,
+            "qty": 93,
             "unit": "piece"
         },
         "asefefef": {
@@ -89,7 +90,7 @@
         "hi-789": {
             "cat": "abcdefg",
             "price": 1.0,
-            "qty": 4,
+            "qty": 0,
             "unit": "liter"
         },
         "item 1245": {
@@ -131,8 +132,14 @@
         "trgrfdfg": {
             "cat": "124567ytgfc",
             "price": 1.0,
-            "qty": 1,
+            "qty": 0,
             "unit": "piece"
+        },
+        "فراخ ز5 كيلو": {
+            "cat": "اغذيه",
+            "price": 12.0,
+            "qty": 62,
+            "unit": "قطعه"
         }
     },
     "money": [
@@ -140,9 +147,69 @@
         1.0,
         8.0,
         12.0,
-        1.0
+        1.0,
+        24.0,
+        28.0,
+        5.0,
+        67.0,
+        6.0,
+        7.0
     ],
-    "totalMoney": 3460.5,
+    "receipts": [
+        {
+            "akhenvr": {
+                "cat": "cat 1",
+                "price": 1.0,
+                "qty": 5,
+                "unit": "piece"
+            }
+        },
+        {
+            ".k,jmhngbfv": {
+                "cat": "jhmngbfvdc",
+                "price": 1.0,
+                "qty": 1,
+                "unit": "piece"
+            },
+            "akhenvr": {
+                "cat": "cat 1",
+                "price": 1.0,
+                "qty": 5,
+                "unit": "piece"
+            },
+            "trgrfdfg": {
+                "cat": "124567ytgfc",
+                "price": 1.0,
+                "qty": 1,
+                "unit": "piece"
+            },
+            "فراخ ز5 كيلو": {
+                "cat": "اغذيه",
+                "price": 12.0,
+                "qty": 5,
+                "unit": "قطعه"
+            }
+        },
+        {
+            "akhenvr": {
+                "cat": "cat 1",
+                "price": 1.0,
+                "qty": 6,
+                "unit": "piece"
+            },
+            "totalMoney": 6.0
+        },
+        {
+            "akhenvr": {
+                "cat": "cat 1",
+                "price": 1.0,
+                "qty": 7,
+                "unit": "piece"
+            },
+            "totalMoney": 7.0
+        }
+    ],
+    "totalMoney": 3597.5,
     "user": {
         "YWxp": "MTExMTEx",
         "anJnbnJnbmxy": "bGVqbnJqbGdybmdq",
