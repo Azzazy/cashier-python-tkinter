@@ -1,4 +1,4 @@
-from tkinter import *
+﻿from tkinter import *
 from tkinter import ttk
 import tkinter.simpledialog
 import json
@@ -117,7 +117,7 @@ def drawLoginView():
 def drawInventoryView():
 	def addCatAction():
 		cat = catName.get()
-		if len(cat)<5 or cat in data.cat : return
+		if len(cat)<2 or cat in data.cat : return
 		data.cat.append(cat)
 		data.save() 
 		fillNewItemCatOm()
@@ -130,7 +130,7 @@ def drawInventoryView():
 		price = itemPrice.get()
 		qty = itemQty.get()
 		unit = unitDd.get()
-		if len(name)<5 or name in data.item : return
+		if len(name)<2 or name in data.item : return
 		data.item[name] ={
 			'cat':cat,
 			'price':price,
@@ -444,7 +444,7 @@ text={
 'inventoryWinTitle':'المخزن',
 'goBackBtn':'اغلق المخزن',
 'addCatBtn':'مجموعه جديده',
-'addItemBtn':'صنف جديد+',
+'addItemBtn':'صنف جديد',
 'piece':'قطعه',
 'liter':'لتر',
 'addItemToInvBtn':'اضف للمخزن',
