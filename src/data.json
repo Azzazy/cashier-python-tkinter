@@ -1,10 +1,50 @@
 {
     "cat": [
-        "default"
+        "default",
+        "abc"
     ],
-    "item": {},
-    "money": [],
-    "receipts": [],
-    "totalMoney": 0.0,
+    "item": {
+        "aaaaa": {
+            "cat": "abc",
+            "price": 15.0,
+            "qty": 176,
+            "unit": "قطعه"
+        }
+    },
+    "money": [
+        135.0,
+        75.0,
+        150.0
+    ],
+    "receipts": [
+        {
+            "aaaaa": {
+                "cat": "abc",
+                "price": 15.0,
+                "qty": 9,
+                "unit": "قطعه"
+            },
+            "totalMoney": 135.0
+        },
+        {
+            "aaaaa": {
+                "cat": "abc",
+                "price": 15.0,
+                "qty": 5,
+                "unit": "قطعه"
+            },
+            "totalMoney": 75.0
+        },
+        {
+            "aaaaa": {
+                "cat": "abc",
+                "price": 15.0,
+                "qty": 10,
+                "unit": "قطعه"
+            },
+            "totalMoney": 150.0
+        }
+    ],
+    "totalMoney": 360.0,
     "user": {}
 }

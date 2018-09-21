@@ -6,7 +6,6 @@ import io
 import base64
 
 
-
 def checkMasterPassword():
 	answer = tkinter.simpledialog.askstring(title=text['masterPassTitle'], prompt=text['masterPassPrompt'],show='*')
 	if answer != masterPassword: 
@@ -22,7 +21,6 @@ class Data:
 		this.item={}
 		this.totalMoney=0.0
 		this.money = []
-		this.receipt = {}
 		this.receipts = []
 		try:this.load()
 		except:this.create()
@@ -44,9 +42,10 @@ class Data:
 		return ['' + k + ' - ' + str(v['unit'])  for k,v in this.getItems(cat).items()]
 		
 	def prepareData(this):
-		if this.receipt: 
-			this.receipts.append(this.receipt)
-			this.receipt = {}
+		global currReceipt
+		if currReceipt: 
+			this.receipts.append(currReceipt)
+			currReceipt = {}
 		this._data = {'user':this.user, 'cat':this.cat, 'item':this.item,'totalMoney':this.totalMoney, 'money':this.money, 'receipts':this.receipts}
 		
 	def create(this):
@@ -245,35 +244,35 @@ def drawInventoryView():
 	Button(addToInveFrame,text=text['addItemToInvBtn'],command=addItemToInvAction,width=15).pack(side=RIGHT,fill=Y)
 	
 	#View inventory
-	tree = ttk.Treeview(f,selectmode='browse',height=50)
-	tree["columns"]=("name","price","qty","unit")
-	tree.column("#0", width=100)
-	tree.column("name", width=400)
-	tree.column("price", width=80)
-	tree.column("qty", width=80)
-	tree.column("unit", width=80)
-	tree.heading("#0", text=text['catHeading'])
-	tree.heading("name", text=text['nameHeading'])
-	tree.heading("price", text=text['priceHeading'])
-	tree.heading("qty", text=text['qtyHeading'])
-	tree.heading("unit", text=text['unitHeading'])
+	invTree = ttk.Treeview(f,selectmode='browse',height=50)
+	invTree["columns"]=("name","price","qty","unit")
+	invTree.column("#0", width=100)
+	invTree.column("name", width=400)
+	invTree.column("price", width=80)
+	invTree.column("qty", width=80)
+	invTree.column("unit", width=80)
+	invTree.heading("#0", text=text['catHeading'])
+	invTree.heading("name", text=text['nameHeading'])
+	invTree.heading("price", text=text['priceHeading'])
+	invTree.heading("qty", text=text['qtyHeading'])
+	invTree.heading("unit", text=text['unitHeading'])
 	
 	def fillItemsTree():
-		tree.delete(*tree.get_children())
+		invTree.delete(*invTree.get_children())
 		for i in data.cat:
 			items = data.getItems(i)
 			if not items: continue
-			catId = tree.insert("" , 'end', text=i, values=('','',str(len(items)) ,''))
+			catId = invTree.insert("" , 'end', text=i, values=('','',str(len(items)) ,''))
 			for k,v in items.items():
 				if v['qty'] < 10:
-					tree.insert(catId, "end", values=(k,v['price'],v['qty'],v['unit']),tags=('item','low'))
-					tree.item(catId, tags="low	")
+					invTree.insert(catId, "end", values=(k,v['price'],v['qty'],v['unit']),tags=('item','low'))
+					invTree.item(catId, tags="low	")
 				else:
-					tree.insert(catId, "end", values=(k,v['price'],v['qty'],v['unit']),tags=('item'))
+					invTree.insert(catId, "end", values=(k,v['price'],v['qty'],v['unit']),tags=('item'))
 	fillItemsTree()
-	tree.tag_configure('low', background='red')
+	invTree.tag_configure('low', background='red')
 	#tree.tag_bind('item','<1>',changeLog)
-	tree.pack(expand=True,fill='both')
+	invTree.pack(expand=True,fill='both')
 	return win
 
 def showInventoryView():
@@ -309,26 +308,28 @@ def drawMainView():
 		name = name[:name.rfind('-')-1]
 		item = data.item[name]
 		availableQty = item['qty']
-		if name in data.receipt.keys():
-			if data.receipt[name]['qty']+qty>availableQty:return
-			data.receipt[name]['qty']+=qty
+		if name in currReceipt.keys():
+			if currReceipt[name]['qty']+qty>availableQty:return
+			currReceipt[name]['qty']+=qty
 		else:
 			if qty > availableQty:return
 			newItem = dict(item)
 			newItem['qty']=qty
-			data.receipt[name]=newItem
-		try:data.receipt['totalMoney']+= qty * item['price']
-		except:data.receipt['totalMoney']= qty * item['price']
-		recTotalLabelVar.set(data.receipt['totalMoney'])
+			currReceipt[name]=newItem
+		try:currReceipt['totalMoney']+= qty * item['price']
+		except:currReceipt['totalMoney']= qty * item['price']
+		recTotalLabelVar.set(currReceipt['totalMoney'])
 		fillReceiptItemsTree()
 		log.set('Item updated')
 		
 	def clearRecAction():
+		global currReceipt
+		currReceipt={}
 		recTotalLabelVar.set(0.0)
 		fillReceiptItemsTree()
 		
 	def confirmRecAction():
-		for k,v in data.receipt.items():
+		for k,v in currReceipt.items():
 			if k == 'totalMoney':continue
 			data.item[k]['qty']-=v['qty']
 		data.money.append(recTotalLabelVar.get())
@@ -372,27 +373,28 @@ def drawMainView():
 	
 	Button(recOpsFrame,text=text['clearRecBtn'],command=clearRecAction,width=15).pack(side=RIGHT,fill=Y)
 	
-	tree = ttk.Treeview(root,selectmode='browse',height=50)
-	tree["columns"]=("name","price","qty","unit")
-	tree.column("#0", width=0)
-	tree.column("name", width=400)
-	tree.column("price", width=80)
-	tree.column("qty", width=80)
-	tree.column("unit", width=80)
+	recTree = ttk.Treeview(root,selectmode='browse',height=50)
+	recTree["columns"]=("name","price","qty","unit")
+	recTree.column("#0", width=0)
+	recTree.column("name", width=400)
+	recTree.column("price", width=80)
+	recTree.column("qty", width=80)
+	recTree.column("unit", width=80)
 
-	tree.heading("name", text=text['nameHeading'])
-	tree.heading("price", text=text['priceHeading'])
-	tree.heading("qty", text=text['qtyHeading'])
-	tree.heading("unit", text=text['unitHeading'])
+	recTree.heading("name", text=text['nameHeading'])
+	recTree.heading("price", text=text['priceHeading'])
+	recTree.heading("qty", text=text['qtyHeading'])
+	recTree.heading("unit", text=text['unitHeading'])
 	
 	def fillReceiptItemsTree():
-		tree.delete(*tree.get_children())
-		for k,v in data.receipt.items():
-			if k=='totalMoney':continue
-			tree.insert('', "end", values=(k,v['price'],v['qty'],v['unit']),tags=('receiptItem'))
+		recTree.delete(*recTree.get_children())
+		for k,v in currReceipt.items():
+				if k=='totalMoney':continue
+				recTree.insert('', "end", values=(k,v['price'],v['qty'],v['unit']),tags=('receiptItem'))
+		
 	fillReceiptItemsTree()
 	#tree.tag_bind('receiptItem','<1>',changeLog)
-	tree.pack(expand=True,fill='both',side=BOTTOM,anchor=S)
+	recTree.pack(expand=True,fill='both',side=BOTTOM,anchor=S)
 	
 
 def changeLog(event):
@@ -469,6 +471,7 @@ dataFileName = 'data.json'
 IN_DEVELOPMENT = True
 	
 data = Data()
+currReceipt={}
 root = Tk()
 root.title(text['rootTitle'])
 w = 800
@@ -487,6 +490,7 @@ loginPass = StringVar()
 
 def updateTotalMoneyLabel():
 	totalMoneyLabelVar.set(data.totalMoney)
+	
 totalMoneyLabelVar = DoubleVar()
 updateTotalMoneyLabel()
 
