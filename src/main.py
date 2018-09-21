@@ -39,7 +39,7 @@ class Data:
 		return {k:v for k,v in this.item.items() if v['cat'] == cat}
 		
 	def getItemsForDD(this,cat):
-		return ['' + k + ' - ' + str(v['unit'])  for k,v in this.getItems(cat).items()]
+		return [str(v['price']) +' - '+str(v['unit']) + ' ' + str(v['qty']) + ' - ' + name for name,v in this.getItems(cat).items()]
 		
 	def prepareData(this):
 		global currReceipt
@@ -352,7 +352,7 @@ def drawMainView():
 	addRecItemOmVar = StringVar()
 	addRecItemOm = OptionMenu(addRecFrame, addRecItemOmVar, '')
 	addRecItemOm.pack(side=LEFT,fill=Y)
-	addRecItemOm.config(width=20)
+	addRecItemOm.config(width=35)
 	fillAddRecItemsOm(addRecCatOmVar.get())
 	
 	addRecQtyVar = IntVar()
