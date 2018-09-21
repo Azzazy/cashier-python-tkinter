@@ -211,7 +211,7 @@ def drawInventoryView():
 	def addItemToInvAction():
 		cat = addToInvCatOmVar.get()
 		name = itemDd.get()
-		name = name[:name.rfind('-')-1]
+		name = name[name.rfind('-')+2:]
 		qty = itemQtyForItem.get()
 		data.item[name]['qty'] += qty
 		data.save() 
@@ -281,6 +281,7 @@ def showInventoryView():
 	
 def showMainView():
 	root.grab_set()
+	updateMainView()
 	inventoryWindow.withdraw()
 	
 def drawMainView():
@@ -295,17 +296,24 @@ def drawMainView():
 		for i in items:addRecItemOm['menu'].add_command(label=i,command=lambda x=i:addRecItemOmVar.set(x))
 	
 	def catCommand(x):
-			addRecCatOmVar.set(x)
-			fillAddRecItemsOm(x)
+		addRecCatOmVar.set(x)
+		fillAddRecItemsOm(x)
+			
 	def fillAddRecCatOm():
 		addRecCatOm['menu'].delete(0,'end')
 		cats = data.cat
 		for c in cats:addRecCatOm['menu'].add_command(label=c,command=lambda x=c:catCommand(x))
+		
+	global updateMainView
+	def localUpdateMainView():
+		fillAddRecCatOm()
+		fillAddRecItemsOm()
+	updateMainView = localUpdateMainView
 	
 	def addItemRecAction():
 		qty = addRecQtyVar.get()
 		name = addRecItemOmVar.get()
-		name = name[:name.rfind('-')-1]
+		name = name[name.rfind('-')+2:]
 		item = data.item[name]
 		availableQty = item['qty']
 		if name in currReceipt.keys():
@@ -496,6 +504,8 @@ updateTotalMoneyLabel()
 
 loginWindow = drawLoginView()
 inventoryWindow = drawInventoryView()
+
+updateMainView = None
 
 root.withdraw()
 inventoryWindow.withdraw()
