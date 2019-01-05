@@ -4,7 +4,17 @@ import tkinter.simpledialog
 import json
 import io
 import base64
+from datetime import *
 
+
+
+def iso_to_gregorian(iso_year, iso_week, iso_day):
+	def iso_year_start(iso_year):
+		fourth_jan = date(iso_year, 1, 4)
+		delta = timedelta(fourth_jan.isoweekday()-1)
+		return fourth_jan - delta 
+	year_start = iso_year_start(iso_year)
+	return year_start + timedelta(days=iso_day-1, weeks=iso_week-1)
 
 def checkMasterPassword():
 	answer = tkinter.simpledialog.askstring(title=text['masterPassTitle'], prompt=text['masterPassPrompt'],show='*')
